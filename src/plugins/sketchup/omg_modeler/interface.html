@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<!--
+/**
+ * OMG, Optimization-based Model Generator
+ * Copyright (c) 2016-2017 The University of Hong Kong
+ * Author: Fan Xue <xuef@hku.hk; fanxue@outlook.com>
+ *
+ * This file is part of omg.
+ *
+ * OMG is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * OMG is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with OMG.  If not, see <http://www.gnu.org/licenses/>.
+ */
+-->
+<HTML>
+<head>
+    <title>OMG: Optimization-based Model Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.css" />
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.js"></script>
+</head>
+<body>
+<div data-role="page" id="main">
+  <div data-role="header">
+    <h1>OMG SketchUp Toolbar</h1>
+  </div>
+
+  <div data-role="main" class="ui-content">
+    <div data-role="navbar">
+      <ul>
+        <li><a href="#config" data-icon="gear" data-transition="slide">Config</a></li>
+        <li><a href="#" data-icon="camera" onclick='btn_reset_click()'>Reset cam</a></li>
+        <li><a href="#" data-icon="bullets">Show logs</a></li>
+        <li><a href="#" data-icon="info" onclick="">About</a></li>
+      </ul>
+      <ul>
+        <li><a href="#" data-icon="refresh" onclick='btn_clear_click()'>Clear model</a></li>
+        <li><a href="#" data-icon="arrow-r" onclick='btn_inreamental_click()'>Incremental build</a></li>
+        <li><a href="#" data-icon="search" onclick='btn_discovery_click()'>Discovery build</a></li>
+        <li><a href="#" data-icon="recycle">Overall finetune</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+<!-- config page-->
+<div data-role="page" id="config">
+  <div data-role="header">
+    <a href="#main" data-icon="carat-l" data-transition="slide" data-direction="reverse">Back</a>
+    <h1>Config</h1>
+  </div>
+
+  <div data-role="main" class="ui-content">
+    <form>
+      <h3>Components &amp; Measurement:</h3>
+      <div class="ui-field-contain">
+        <label for="fullname">Input file:</label>
+        <input type="text" name="fullname" id="fullname" value="C:/Users/Xue Fan/AppData/Roaming/SketchUp/SketchUp 2016/SketchUp/Plugins/omg_modeler/ref_image/ref.bmp" />
+        <label for="bday">Components:</label>
+        <input type="text" name="fullname" id="fullname" value="Components/omg" />
+        <label for="bday">Temp file:</label>
+        <input type="text" name="fullname" id="fullname" value="Z:/1.bmp" />
+      </div>
+      <h3>Optimization:</h3>
+      <div class="ui-field-contain">
+      <fieldset data-role="controlgroup" data-type="horizontal">
+        <legend>Solver:</legend>
+          <label for="solver_libcmaes">libcmaes</label>
+          <input type="radio" name="solver" id="solver_libcmaes" value="libcmaes" checked>
+          <label for="solver_cmaespp">cmaespp</label>
+          <input type="radio" name="solver" id="solver_cmaespp" value="cmaespp">
+          <label for="solver_ga">GA</label>
+          <input type="radio" name="solver" id="solver_ga" value="GA">
+      </fieldset>
+        <label for="iter_inc">Inc. iters:</label>
+        <input type="text" name="iter_inc" id="iter_inc" value="10">
+        <label for="iter_finetune">Finetune iters:</label>
+        <input type="text" name="iter_finetune" id="iter_finetune" value="1000">
+      </div>
+    </form>
+  </div>
+</div>
+<script type='text/javascript'>
+    function btn_clear_click()
+    {
+		rubyCalled('omg_reset_model' , 'ref_image/ref.bmp');
+    }
+    function btn_reset_click()
+    {
+		rubyCalled('omg_reset_cam');
+    }
+    function btn_inreamental_click()
+    {
+		rubyCalled('omg_incremental_apriori', 5000);
+    }
+    function btn_discovery_click()
+    {
+		rubyCalled('omg_discovery', 200);
+    }
+
+    // Ruby/SketchUp message bridge
+	function rubyCalled( cb_name, msg ) {
+		fake_url = 'skp:' + cb_name + '@' + msg
+		window.location.href = fake_url
+	}
+</script>
+</body>
+</HTML>

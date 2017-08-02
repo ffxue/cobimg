@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<!--
+/**
+ * OMG, Optimization-based Model Generator
+ * Copyright (c) 2016-2017 The University of Hong Kong
+ * Author: Fan Xue <xuef@hku.hk; fanxue@outlook.com>
+ *
+ * This file is part of omg.
+ *
+ * OMG is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * OMG is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with OMG.  If not, see <http://www.gnu.org/licenses/>.
+ */
+-->
+<HTML>
+<head>
+    <title>OMG Progress Monitor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.css" />
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/jquery.canvasjs.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/notify/0.4.2/notify.min.js"></script>
+    <style>.canvasjs-chart-credit {display: none;}</style>
+</head>
+<body>
+<div data-role="page" id="main">
+  <div data-role="header">
+    <h1>OMG Progress Monitor &copy; iLab, HKU, 2016-17</h1>
+  </div>
+  <div data-role="main" class="ui-content">
+    <!-- first row -->
+    <div class="ui-grid-b">
+      <div class="ui-block-a"><h3>Reference measurement (as an image)</h3></div>
+      <div class="ui-block-b"><h3>Best-so-far model (𝑓=<span id="best_so_far">#</span>)</h3></div>
+      <div class="ui-block-c"><h3>Current trial (𝑓=<span id="current">#</span>)</h3></div>
+    </div>
+    <!-- first row -->
+    <div class="ui-grid-b">
+      <div class="ui-block-a"><img src="ref_image/ref.bmp" style="max-width: 31vw;"/></div>
+      <div class="ui-block-b"><img id="img_best" style="max-width: 31vw;" /></div>
+      <div class="ui-block-c"><img id="img_current" style="max-width: 31vw;" /></div>
+    </div>
+    <!-- charting -->
+    <div id="chartContainer" style="height: 50vh;"></div>
+  </div>
+</div>
+<script type='text/javascript'>
+	var dataPoints = [];
+	var dataPointsBest = [];
+    var jsReads = 0;
+    var lastIter = 0;
+    var lastMessage = "";
+    var lastBestKnown = 0;
+    var overallBestKnown = 10000;
+    var lastScript = null;
+    // when document ready
+    $(function() {
+        var dataChart = [];
+        var dataSeries = { name: "Current", type: "line", markerType: "none", showInLegend: true};
+        var dataSeriesInc = { name: "Incremental", type: "line", markerType: "none", showInLegend: true};
+        var dataSeriesBest = { name: "Best so far", type: "line", markerType: "none", showInLegend: true};
+        dataSeries.dataPoints = dataPoints;
+        dataSeriesBest.dataPoints = dataPointsBest;
+        dataChart.push(dataSeries);
+        dataChart.push(dataSeriesBest);
+        //Better to construct options first and then pass it as a parameter
+        var options = {
+            //zoomEnabled: true,
+            //exportEnabled: true,
+            //animationEnabled: true,
+            title: {
+                text: "Fitness of model (to minimize dissimilarity)"
+            },
+            axisX: {
+                title: "Iterations",
+                includeZero: true
+            },
+            axisY: {
+                title: " 𝑓 ",
+                includeZero: false
+            },
+            data: dataChart  // random data
+        };
+
+        chart = $("#chartContainer").CanvasJSChart(options);
+        
+        setInterval(readJsFile, 1000);
+    });
+    
+    // read progress
+    function readJsFile()
+    {
+        var script = document.createElement('script');
+        try
+        {
+            script.src = "Z:/progress.js";
+            if (lastScript != null)
+            {
+                document.head.removeChild(lastScript);
+                lastScript = null;
+            }
+            document.head.appendChild(script);
+            lastScript = script;
+            script.onload = function () {
+                if (lastIter != currnet_iteration && lastIter + 100 > currnet_iteration )
+                {
+                    for (var i = 0; i < progress.length; i++)
+                    {
+                        dataPoints.push({ x: progress[i].iteration, y: progress[i].current_fitness });
+                        dataPointsBest.push({ x: progress[i].iteration, y: progress[i].best_fitness });
+                    }
+                    $("#best_so_far").text(progress[progress.length-1].best_fitness.toFixed(4));
+                    $("#current").text(progress[progress.length-1].current_fitness.toFixed(4));
+                    
+                    $("#chartContainer").CanvasJSChart().render();
+                    var d = new Date();
+                    if (lastBestKnown != progress[progress.length-1].best_fitness)
+                    {
+                        lastBestKnown = progress[progress.length-1].best_fitness;
+                        $('#img_best').attr('src','Z:/best.bmp?'+d.getTime());
+                    }
+                    $('#img_current').attr('src','Z:/1.bmp?'+d.getTime());
+                    lastIter = currnet_iteration;
+                    if (omg_message != "" && omg_message != lastMessage)
+                    {
+                        $("#img_best").notify(omg_message, "success");
+                        lastMessage = omg_message;
+                    }
+                };
+            }
+            ++jsReads;
+        }
+        catch(err) {
+            // not found
+            console.log(err.message);
+        }
+    }
+</script>
+</body>
+</HTML>

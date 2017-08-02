@@ -1,0 +1,1 @@
+var progress_json = "Z:/prog.json";
